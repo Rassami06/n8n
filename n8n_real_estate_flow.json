@@ -1,0 +1,97 @@
+{
+  "name": "Real Estate Auto Post Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "your-google-sheet-id",
+        "range": "Sheet1!A1:H"
+      },
+      "id": "1",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "authentication": "predefinedCredentialType",
+        "sendBody": true,
+        "options": {},
+        "headerParametersJson": "{\"Authorization\": \"Bearer YOUR_OPENAI_API_KEY\", \"Content-Type\": \"application/json\"}",
+        "bodyParametersJson": "{\"model\": \"gpt-4\", \"messages\": [{\"role\": \"system\", \"content\": \"You are a real estate content writer.\"}, {\"role\": \"user\", \"content\": \"\\u0e40\\u0e02\\u0e35\\u0e22\\u0e19\\u0e42\\u0e1e\\u0e2a\\u0e15\\u0e4c\\u0e02\\u0e32\\u0e22\\u0e1a\\u0e49\\u0e32\\u0e19\\u0e14\\u0e49\\u0e27\\u0e22\\u0e02\\u0e49\\u0e2d\\u0e21\\u0e39\\u0e25: \\u0e42\\u0e04\\u0e23\\u0e07\\u0e01\\u0e32\\u0e23: {{$json[\\\"project\\\"]}}, \\u0e17\\u0e33\\u0e40\\u0e25: {{$json[\\\"location\\\"]}}, \\u0e02\\u0e19\\u0e32\\u0e14: {{$json[\\\"bedrooms\\\"]}} \\u0e2b\\u0e49\\u0e2d\\u0e07\\u0e19\\u0e2d\\u0e19 {{$json[\\\"bathrooms\\\"]}} \\u0e2b\\u0e49\\u0e2d\\u0e07\\u0e19\\u0e49\\u0e33 {{$json[\\\"area\\\"]}} \\u0e15\\u0e23.\\u0e21., \\u0e08\\u0e38\\u0e14\\u0e40\\u0e14\\u0e48\\u0e19: {{$json[\\\"features\\\"]}}, \\u0e23\\u0e32\\u0e04\\u0e32: {{$json[\\\"price\\\"]}}, \\u0e42\\u0e1b\\u0e23\\u0e42\\u0e21\\u0e0a\\u0e31\\u0e48\\u0e19: {{$json[\\\"promotion\\\"]}}\"}], \"temperature\": 0.8}"
+      },
+      "id": "2",
+      "name": "ChatGPT - Generate Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "openai-credentials-id",
+          "name": "OpenAI Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "your-google-sheet-id",
+        "range": "GeneratedPosts!A1:B1",
+        "options": {},
+        "valueInputMode": "RAW",
+        "data": [
+          {
+            "values": [
+              "={{$json[\"project\"]}}",
+              "={{$node[\"ChatGPT - Generate Post\"].json[\"choices\"][0][\"message\"][\"content\"]}}"
+            ]
+          }
+        ]
+      },
+      "id": "3",
+      "name": "Save Generated Post",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "ChatGPT - Generate Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT - Generate Post": {
+      "main": [
+        [
+          {
+            "node": "Save Generated Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1747211961.542264"
+}
